@@ -1,0 +1,55 @@
+"""
+---------------------------
+Lesson 1, Created on Jun 15
+@author: LiuBin(11693)
+---------------------------
+"""
+
+from functools import reduce
+import pandas as pd
+import numpy as np
+
+# Mission 1: sum_1 = 2+4+6+...+98+100
+# By using of function reduce
+sum_1 = reduce(lambda x,y:x+y,[x for x in range(0,101) if x%2 == 0])
+print("2+4+6+...+98+100 = %d" % sum_1)
+
+
+# Mission 2: stastics of class scores
+# some stastics indexs; min/max/std
+score = pd.DataFrame({"Name":["吕布","赵云","典韦","关羽","马超"], 
+                      "Chinese":[76,98,57,83,90],
+                      "Math":[83,94,77,87,98],
+                      "German":[44,39,86,71,55]})
+score.describe().loc[["max","min","std"]]
+# sort values by total score
+score["total"]=score[["Chinese","Math","German"]].apply(lambda x: x.sum(),axis = 1)
+score.sort_values(by=["total"], ascending=False)
+
+
+# Mission 3: car-complain-data
+"""
+Read car complain data;
+split the complain column;
+replace the old column with new splitted ones.
+"""
+df_1 = pd.read_csv(open("car_complain.csv", encoding="utf-8"))
+df_1 = pd.concat([df_1.drop("problem", 1), df_1.problem.str.get_dummies(",")], axis=1)
+
+# count the number of complains by id
+tags = df_1.columns[7:]
+df_2 = df_1[tags].apply(lambda x: x.sum(), axis=1)
+df_3 = pd.concat((df_1[["brand", "car_model"]], df_2), axis=1)
+
+# groupby brand/car_model & sort_values
+df_4 = df_3.groupby("brand").agg(投诉总数=(0,"sum"))
+df_4 = df_4.sort_values("投诉总数", ascending=False)
+df_5 = df_3.groupby("car_model").agg(投诉总数=(0,"sum"))
+df_5 = df_5.sort_values("投诉总数", ascending=False)
+print(df_4)
+print(df_5)
+
+# groupby brand&car_model & sort_values
+df_6 = df_3.groupby(["brand","car_model"]).agg(投诉总数=(0,"sum"))
+df_7 = df_6.groupby("brand").agg(投诉平均=(投诉总数,"mean")).sort_values("投诉平均",ascending=False)
+print(df_7)
